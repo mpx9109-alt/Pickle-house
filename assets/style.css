@@ -252,7 +252,7 @@ main { padding-bottom: 40px; }
   border-radius: 17px;
   background: linear-gradient(170deg, var(--paper) 0%, var(--paper-2) 100%);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 0 rgba(255, 255, 255, .5);
-  min-height: 168px;
+  min-height: 158px;
   overflow: visible;
   transition: box-shadow .25s ease, transform .25s ease, background .6s ease;
   isolation: isolate;
@@ -268,7 +268,7 @@ main { padding-bottom: 40px; }
 }
 
 .room--study { grid-area: study; }
-.room--living { grid-area: living; min-height: 350px; }
+.room--living { grid-area: living; min-height: 322px; }
 .room--work { grid-area: work; }
 .room--entry { grid-area: entry; }
 .room--utility { grid-area: utility; }
@@ -296,17 +296,19 @@ main { padding-bottom: 40px; }
   color: var(--ink-3); text-transform: uppercase;
 }
 .room-line {
-  display: block; margin-top: 7px; padding-right: 62px;
+  display: block; margin-top: auto; padding-right: 44px;
   font-size: .74rem; line-height: 1.45; color: var(--ink-2); font-weight: 600;
 }
-.room--living .room-line { padding-right: 0; max-width: 210px; }
+.room--living .room-line {
+  padding-right: 0; padding-left: 74px; padding-bottom: 2px; max-width: none;
+}
 
 /* 방 안의 작은 가구들 */
 .rug {
-  position: absolute; left: 50%; top: 54%; width: 84%; height: 42%;
+  position: absolute; left: 48%; top: 52%; width: 88%; height: 50%;
   transform: translate(-50%, -50%); border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(240, 144, 159, .16) 0%, rgba(240, 144, 159, .06) 62%, transparent 70%);
-  border: 1px dashed rgba(208, 111, 128, .22);
+  background: radial-gradient(ellipse at center, rgba(240, 144, 159, .3) 0%, rgba(240, 144, 159, .13) 58%, transparent 72%);
+  border: 1px dashed rgba(208, 111, 128, .26);
   pointer-events: none; z-index: 0;
 }
 .room--living::after {
@@ -343,7 +345,7 @@ main { padding-bottom: 40px; }
 }
 
 .bubble {
-  position: absolute; right: -2px; bottom: calc(100% + 9px);
+  position: absolute; right: -2px; bottom: calc(100% + 3px);
   width: max-content; max-width: 168px;
   padding: 7px 10px; border-radius: 13px 13px 4px 13px;
   background: var(--paper); color: var(--ink);
@@ -604,8 +606,8 @@ main { padding-bottom: 40px; }
       "entry utility";
     gap: 7px; padding: 7px; border-radius: 22px;
   }
-  .room { min-height: 146px; border-radius: 15px; }
-  .room--living { min-height: 232px; }
+  .room { min-height: 140px; border-radius: 15px; }
+  .room--living { min-height: 226px; }
   .room-btn { padding: 11px 12px 12px; }
   .room-name { font-size: .9rem; }
   .room-line { font-size: .72rem; padding-right: 52px; }
