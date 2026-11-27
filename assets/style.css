@@ -355,6 +355,12 @@ main { padding-bottom: 36px; }
 }
 .room.is-done .room-bar span { background: var(--pickle); }
 
+.room-preview {
+  display: block; margin-top: auto; padding: 14px 46px 0 0;
+  font-size: .68rem; line-height: 1.4; font-weight: 600; color: var(--ink-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 .rug {
   position: absolute; left: 50%; top: 66%; width: 90%; height: 36%;
   transform: translate(-50%, -50%); border-radius: 50%;
@@ -428,14 +434,17 @@ main { padding-bottom: 36px; }
 
 /* ---------- 체크리스트 카드 ---------- */
 .list-card {
-  border-radius: var(--radius); border: 1px solid var(--line);
+  border-radius: var(--radius); border: 1px solid rgba(122, 87, 52, .16);
   background: var(--paper); box-shadow: var(--shadow);
   padding: 16px 16px 14px;
   display: flex; flex-direction: column;
   transition: background .6s ease, border-color .6s ease;
 }
 @media (min-width: 940px) {
-  .list-card { position: sticky; top: 18px; max-height: calc(100vh - 36px); }
+  .list-card {
+    position: sticky; top: 18px;
+    max-height: min(660px, calc(100vh - 150px));
+  }
 }
 .list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
 .list-kicker { font-size: .58rem; font-weight: 800; letter-spacing: .2em; color: var(--ink-3); }
@@ -445,10 +454,7 @@ main { padding-bottom: 36px; }
   background: rgba(154, 113, 72, .12); padding: 3px 9px; border-radius: 99px;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.list-scroll { margin-top: 8px; overflow-y: auto; min-height: 0; }
-@media (min-width: 940px) {
-  .list-scroll { max-height: calc(100vh - 300px); }
-}
+.list-scroll { margin-top: 8px; overflow-y: auto; min-height: 0; flex: 1 1 auto; }
 
 .group-head {
   display: flex; align-items: center; gap: 6px;

@@ -204,8 +204,18 @@
       var badge = card.querySelector('[data-count="' + key + '"]');
       var sub = card.querySelector('[data-sub="' + key + '"]');
       var bar = card.querySelector('[data-bar="' + key + '"]');
+      var prev = card.querySelector('[data-preview="' + key + '"]');
       if (badge) badge.textContent = total;
       if (sub) sub.textContent = done + " / " + total + " 완료";
+      if (prev) {
+        var list = roomItems(key);
+        var next = null;
+        for (var i = 0; i < list.length; i++) { if (!list[i].done) { next = list[i]; break; } }
+        if (!next) next = list[0] || null;
+        prev.textContent = next
+          ? (list.length > 1 ? next.title + " 외 " + (list.length - 1) + "개" : next.title)
+          : "아직 할 일이 없어요";
+      }
       if (bar) bar.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
       card.classList.toggle("is-done", total > 0 && done === total);
       var label = card.querySelector(".room-btn");
