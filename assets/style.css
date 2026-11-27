@@ -201,12 +201,17 @@ main { padding-bottom: 40px; }
   transition: background .6s ease;
 }
 .chimney {
-  position: absolute; right: 21%; top: 6px; width: 25px; height: 52px;
-  border-radius: 4px 4px 2px 2px;
+  position: absolute; right: 23%; top: 30px; width: 24px; height: 62px;
+  border-radius: 3px 3px 0 0;
   background: linear-gradient(100deg, var(--wood-dark), var(--wood-deep));
-  box-shadow: inset 2px 0 0 rgba(255, 255, 255, .08);
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, .08), 0 0 0 1px rgba(0, 0, 0, .06);
+  z-index: 0;
 }
-.smoke { position: absolute; right: calc(21% + 6px); top: -4px; width: 10px; height: 10px; opacity: 0; }
+.chimney::after {
+  content: ""; position: absolute; left: -3px; right: -3px; top: -5px; height: 7px;
+  border-radius: 3px; background: var(--wood-dark); opacity: .9;
+}
+.smoke { position: absolute; right: calc(23% + 7px); top: 20px; width: 10px; height: 10px; opacity: 0; }
 .smoke::before, .smoke::after {
   content: ""; position: absolute; width: 9px; height: 9px; border-radius: 50%;
   background: rgba(255, 255, 255, .5); filter: blur(1px);
@@ -247,7 +252,7 @@ main { padding-bottom: 40px; }
   border-radius: 17px;
   background: linear-gradient(170deg, var(--paper) 0%, var(--paper-2) 100%);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .05), 0 1px 0 rgba(255, 255, 255, .5);
-  min-height: 148px;
+  min-height: 168px;
   overflow: visible;
   transition: box-shadow .25s ease, transform .25s ease, background .6s ease;
   isolation: isolate;
@@ -263,14 +268,14 @@ main { padding-bottom: 40px; }
 }
 
 .room--study { grid-area: study; }
-.room--living { grid-area: living; min-height: 312px; }
+.room--living { grid-area: living; min-height: 350px; }
 .room--work { grid-area: work; }
 .room--entry { grid-area: entry; }
 .room--utility { grid-area: utility; }
 
 .room-btn {
   position: relative; z-index: 2;
-  display: flex; flex-direction: column; gap: 3px;
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 3px;
   width: 100%; height: 100%; min-height: inherit;
   padding: 13px 14px 15px;
   border: 0; border-radius: inherit; background: none; text-align: left;
@@ -291,9 +296,10 @@ main { padding-bottom: 40px; }
   color: var(--ink-3); text-transform: uppercase;
 }
 .room-line {
-  display: block; margin-top: auto; padding-right: 62px;
-  font-size: .76rem; line-height: 1.45; color: var(--ink-2); font-weight: 600;
+  display: block; margin-top: 7px; padding-right: 62px;
+  font-size: .74rem; line-height: 1.45; color: var(--ink-2); font-weight: 600;
 }
+.room--living .room-line { padding-right: 0; max-width: 210px; }
 
 /* 방 안의 작은 가구들 */
 .rug {
@@ -312,16 +318,16 @@ main { padding-bottom: 40px; }
 [data-theme="night"] .room--living::after { opacity: 1; }
 
 .pickle-slot { position: absolute; z-index: 4; width: 0; height: 0; pointer-events: none; }
-.room--study .pickle-slot { right: 30px; bottom: 26px; }
-.room--work .pickle-slot { right: 30px; bottom: 26px; }
-.room--entry .pickle-slot { right: 30px; bottom: 24px; }
-.room--utility .pickle-slot { right: 30px; bottom: 24px; }
-.room--living .pickle-slot { right: 32%; bottom: 34%; }
+.room--study .pickle-slot { right: 34px; bottom: 28px; }
+.room--work .pickle-slot { right: 34px; bottom: 28px; }
+.room--entry .pickle-slot { right: 34px; bottom: 26px; }
+.room--utility .pickle-slot { right: 34px; bottom: 26px; }
+.room--living .pickle-slot { right: 26px; bottom: 22px; }
 
 /* ---------- 피클 캐릭터 ---------- */
 .pickle {
   position: absolute; left: 0; bottom: 0;
-  width: 62px; height: 62px; margin-left: -31px;
+  width: 58px; height: 58px; margin-left: -29px;
   pointer-events: none; z-index: 5;
   filter: drop-shadow(0 7px 7px rgba(90, 62, 36, .22));
   will-change: transform;
@@ -337,17 +343,20 @@ main { padding-bottom: 40px; }
 }
 
 .bubble {
-  position: absolute; right: -8px; bottom: calc(100% + 10px);
-  width: max-content; max-width: 188px;
-  padding: 8px 11px; border-radius: 13px 13px 4px 13px;
+  position: absolute; right: -2px; bottom: calc(100% + 9px);
+  width: max-content; max-width: 168px;
+  padding: 7px 10px; border-radius: 13px 13px 4px 13px;
   background: var(--paper); color: var(--ink);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
-  font-size: .74rem; line-height: 1.45; font-weight: 600; text-align: left;
-  transition: background .5s ease, color .5s ease, border-color .5s ease;
+  font-size: .71rem; line-height: 1.42; font-weight: 600; text-align: left;
+  opacity: 0; transform: translateY(6px) scale(.94); pointer-events: none;
+  transition: opacity .28s ease, transform .34s cubic-bezier(.2, .9, .3, 1.1),
+              background .5s ease, color .5s ease, border-color .5s ease;
 }
+.bubble.show { opacity: 1; transform: none; }
 .bubble::after {
-  content: ""; position: absolute; right: 22px; bottom: -6px;
+  content: ""; position: absolute; right: 18px; bottom: -6px;
   width: 10px; height: 10px; transform: rotate(45deg);
   background: var(--paper); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
   border-radius: 0 0 3px 0;
@@ -414,7 +423,10 @@ main { padding-bottom: 40px; }
   font-size: .6rem; font-weight: 800; letter-spacing: .2em; color: var(--ink-3);
 }
 .memo-title { font-size: 1.02rem; font-weight: 800; letter-spacing: -0.02em; }
-.memo-note { font-size: .64rem; color: var(--ink-3); font-weight: 600; white-space: nowrap; padding-bottom: 3px; }
+.memo-note {
+  font-size: .6rem; color: var(--ink-3); font-weight: 600;
+  white-space: nowrap; padding-bottom: 3px; letter-spacing: -0.02em;
+}
 
 .memo-form { display: flex; gap: 8px; margin-top: 14px; }
 .memo-input {
@@ -592,16 +604,16 @@ main { padding-bottom: 40px; }
       "entry utility";
     gap: 7px; padding: 7px; border-radius: 22px;
   }
-  .room { min-height: 132px; border-radius: 15px; }
-  .room--living { min-height: 208px; }
+  .room { min-height: 146px; border-radius: 15px; }
+  .room--living { min-height: 232px; }
   .room-btn { padding: 11px 12px 12px; }
   .room-name { font-size: .9rem; }
   .room-line { font-size: .72rem; padding-right: 52px; }
-  .pickle { width: 52px; height: 52px; margin-left: -26px; }
-  .bubble { max-width: 156px; font-size: .7rem; padding: 7px 10px; }
+  .pickle { width: 48px; height: 48px; margin-left: -24px; }
+  .bubble { max-width: 146px; font-size: .68rem; padding: 6px 9px; }
+  .room--living .pickle-slot { right: 14px; bottom: 16px; }
   .spouse { width: 46px; height: 46px; left: 10px; bottom: 10px; }
   .spouse-bubble { max-width: 128px; font-size: .62rem; }
-  .room--living .pickle-slot { right: 26%; bottom: 30%; }
   .memo { margin-top: 18px; }
   .sheet { max-height: 86vh; }
   .date-line { font-size: .72rem; }

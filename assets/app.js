@@ -121,9 +121,8 @@
   /* ---------------- 피클 캐릭터 ---------------- */
   var pickle = document.createElement("div");
   pickle.className = "pickle";
-  pickle.setAttribute("aria-hidden", "true");
   pickle.innerHTML =
-    '<span class="bubble" id="bubble" aria-live="polite"></span>' +
+    '<span class="bubble" id="bubble" role="status" aria-live="polite"></span>' +
     '<svg class="pickle-body" viewBox="0 0 100 100" focusable="false" aria-hidden="true">' +
       '<g class="body-anim">' +
         '<g fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round">' +
@@ -137,16 +136,22 @@
     "</svg>";
   var bubble = pickle.querySelector("#bubble");
 
-  function setBubble(text) {
+  var bubbleTimer = null;
+
+  function setBubble(text, hold) {
     if (!bubble) return;
     bubble.textContent = text;
     bubble.classList.remove("pop");
     void bubble.offsetWidth;
-    bubble.classList.add("pop");
+    bubble.classList.add("pop", "show");
+    window.clearTimeout(bubbleTimer);
+    bubbleTimer = window.setTimeout(function () {
+      bubble.classList.remove("show");
+    }, hold || 5200);
   }
 
   function currentSlot() {
-    return house.querySelector(".pickle-slot");
+    return house.querySelector('.pickle-slot[data-slot="living"]') || house.querySelector(".pickle-slot");
   }
 
   function placePickle(slot) {
@@ -491,6 +496,6 @@
   window.setInterval(updateDate, 30000);
 
   renderTodos();
-  placePickle(currentSlot() || document.querySelector(".pickle-slot"));
-  setBubble(greeting(new Date()) + ", 종화 님. 방을 눌러 보세요.");
+  placePickle(currentSlot());
+  setBubble(greeting(new Date()) + ", 종화 님. 방을 눌러 보세요.", 6000);
 })();
