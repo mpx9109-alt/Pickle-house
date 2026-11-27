@@ -335,6 +335,7 @@
 
     var act = actEl.dataset.act;
     var id = item.id;
+    var inSheet = !!(sheetList && sheetList.contains(rowEl));
 
     if (act === "toggle") {
       item.done = !item.done;
@@ -352,7 +353,8 @@
     renderAll();
 
     if (act !== "del") {
-      var again = document.querySelector('.row[data-id="' + id + '"] [data-act="' + act + '"]');
+      var scope = inSheet ? sheetBody : document;
+      var again = scope.querySelector('.row[data-id="' + id + '"] [data-act="' + act + '"]');
       if (again) again.focus({ preventScroll: true });
     } else {
       var next = sheetRoom ? sheetList : allList;
@@ -408,7 +410,7 @@
     var input = el("input", "add-input");
     input.type = "text";
     input.maxLength = 60;
-    input.placeholder = "이 방에 할 일 추가 (예: 거실 창틀 닦기)";
+    input.placeholder = "이 방에 할 일 추가";
     input.setAttribute("aria-label", ROOMS[roomKey].name + "에 새 집안일");
 
     var row = el("div", "add-row");
