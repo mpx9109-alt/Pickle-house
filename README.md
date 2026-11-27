@@ -5,6 +5,7 @@
 
 - 배포 주소: <https://mpx9109-alt.github.io/Pickle-house/>
 - 정적 페이지 한 장: `index.html` + `assets/style.css` + `assets/app.js` (프레임워크·빌드 없음)
+- CSS/JS를 고치면 `index.html`의 `?v=` 숫자를 올려 주세요 (브라우저 캐시 때문)
 - 외부 요청 없음 (폰트·아이콘·이미지 모두 로컬/시스템)
 
 ## 방 구성
