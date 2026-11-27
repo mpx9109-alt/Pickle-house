@@ -105,7 +105,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: radial-gradient(circle, rgba(239, 179, 92, .18) 0%, rgba(239, 179, 92, 0) 65%);
 }
 .orb {
-  width: 116px; height: 116px; right: 6vw; top: 34px; border-radius: 50%;
+  width: 148px; height: 148px; left: 50%; margin-left: 190px; top: 58px; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #FFE7B8, var(--sun));
   opacity: .55; filter: blur(.3px);
   box-shadow: 0 0 60px 12px rgba(239, 179, 92, .25);
@@ -137,7 +137,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---------- 상단 ---------- */
 .top, main, .foot {
-  width: min(1050px, 100%);
+  width: min(1120px, 100%);
   margin-inline: auto;
   padding-inline: clamp(14px, 4vw, 26px);
 }
