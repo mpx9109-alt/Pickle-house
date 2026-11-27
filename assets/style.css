@@ -428,7 +428,7 @@ main { padding-bottom: 36px; }
 @media (min-width: 940px) {
   .list-card {
     position: sticky; top: 18px;
-    max-height: min(660px, calc(100vh - 150px));
+    max-height: min(600px, calc(100vh - 160px));
   }
 }
 .list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
