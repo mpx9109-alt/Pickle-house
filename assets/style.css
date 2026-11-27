@@ -355,6 +355,7 @@ main { padding-bottom: 36px; }
 }
 .room.is-done .room-bar span { background: var(--pickle); }
 
+[data-theme="night"] .room-preview { color: #A4927B; }
 .room-preview {
   display: block; margin-top: 7px; padding-right: 8px;
   font-size: .68rem; line-height: 1.4; font-weight: 600; color: var(--ink-3);
