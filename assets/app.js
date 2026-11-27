@@ -1,254 +1,458 @@
-/* 아늑한 일반 집 · 피클 비서실
-   - 방 클릭 → 상세 패널 + 피클 이동(FLIP)
-   - 배우자 피클 자리 인사
-   - 할 일 메모장(localStorage)
-   - 낮/밤 램프 (localStorage)
+/* 우리 집 집안일 · 피클 하우스
+   - 방별 / 전체 체크리스트 (localStorage)
+   - 담당 배지 탭 전환, 주기 표시, 추가·삭제, 오늘 달성률
+   - 종화·수뚜 피클이 방을 오가며 응원
 */
 (function () {
   "use strict";
 
-  /* ---------------- 방 데이터 ---------------- */
+  /* ---------------- 기본 데이터 ---------------- */
+  var ROOM_ORDER = ["living", "kitchen", "bath", "bedroom", "entry"];
+
   var ROOMS = {
-    study: {
-      name: "서재",
-      icon: "📚",
-      tag: "이직 · 이력서",
-      bubble: "마감이 코앞이에요. 이력서부터 볼까요?",
-      note: "마감은 공고에 적힌 날짜 기준이에요. 지원은 종화 님이 직접, 준비물은 같이 봐요.",
-      items: [
-        { title: "진한공업(도블레) 품질·물류관리 책임자", meta: "지원 후보 · 마감 11/28", due: "2026-11-28" },
-        { title: "제이시스메디칼 김포 HUB 재고·3PL", meta: "지원 후보 · 마감 11/30", due: "2026-11-30" },
-        { title: "파스토풀필먼트 청라센터", meta: "지원 후보 · 마감 12/04", due: "2026-12-04" },
-        { title: "쿠팡 인천 AM 인재풀", meta: "인천 단독 AM 공고는 없고, 전국 인재풀 접수 중이에요", state: "wait" }
-      ]
-    },
-    living: {
-      name: "거실",
-      icon: "🛋️",
-      tag: "생활 · 환급",
-      bubble: "환급이랑 포인트, 챙길 걸 모아 뒀어요.",
-      note: "금액은 확인된 것만 적었어요.",
-      items: [
-        { title: "연말정산 미리보기", meta: "예상 환급 약 81.6만 원 · 결정세액 0원", state: "good" },
-        { title: "상반기 근로장려금", meta: "12/17 입금 확인 예정", state: "wait" },
-        { title: "네이버페이 포인트", meta: "11,537원 보유", state: "good" },
-        { title: "매일 07:00 클릭 적립", meta: "매일 아침 자동으로 등록돼요", state: "good" }
-      ]
-    },
-    work: {
-      name: "작업실",
-      icon: "💻",
-      tag: "업무 · CS",
-      bubble: "CS 한 건이 기다리고 있어요.",
-      note: "회사 일은 요약만 남겼어요.",
-      items: [
-        { title: "파사몰 CS — 회원탈퇴 메일", meta: "처리 대기", state: "today" },
-        { title: "알리바바 그라인딩 팁 배송", meta: "배송 추적 중", state: "wait" },
-        { title: "쿠팡 주문이행 기준 점검", meta: "목표 90점", state: "open" }
-      ]
-    },
-    entry: {
-      name: "현관 · 차고",
-      icon: "🚗",
-      tag: "집 · 차량",
-      bubble: "현관문 견적이랑 차 리콜, 여기서 봐요.",
-      note: "견적은 시세 조사 단계까지예요.",
-      items: [
-        { title: "현관문 교체 시세 조사", meta: "견적 비교 중", state: "open" },
-        { title: "코란도(54주4408) 리콜 내역", meta: "확인 완료", state: "done" }
-      ]
-    },
-    utility: {
-      name: "다용도실",
-      icon: "🧺",
-      tag: "잔일 보관",
-      bubble: "잔일은 여기 모아 두고 하나씩 꺼내요.",
-      note: "잔일은 하나씩 꺼내 쓰는 서랍이에요.",
-      items: [
-        { title: "LG 정수기 받침대", meta: "구매 완료", state: "done" },
-        { title: "롱패딩 추천 조사", meta: "후보 정리 중", state: "open" },
-        { title: "아이클라우드 연락처 정리", meta: "진행 중", state: "open" }
-      ]
-    }
+    living:  { name: "거실", icon: "🛋️", cheer: { jh: "거실부터 슥 돌까요?", su: "쿠션은 제가 탈게요 🛋️" } },
+    kitchen: { name: "주방", icon: "🍳", cheer: { jh: "설거지, 제가 할게요.", su: "식세기는 제 차례예요 🍽️" } },
+    bath:    { name: "욕실", icon: "🛁", cheer: { jh: "배수구는 제가 볼게요.", su: "수건 바꿔 둘게요 🧺" } },
+    bedroom: { name: "안방 · 아이방", icon: "🛏️", cheer: { jh: "빨래는 제가 널어요.", su: "침구는 같이 털어요 ☁️" } },
+    entry:   { name: "현관 · 다용도실", icon: "🚪", cheer: { jh: "분리수거 내려갈게요.", su: "택배 박스 접어 둘게요 📦" } }
   };
 
-  var STATE_LABEL = {
-    today: { text: "오늘 처리", cls: "today", item: "item--today" },
-    soon: { text: "마감 임박", cls: "soon", item: "item--soon" },
-    open: { text: "진행 중", cls: "open", item: "item--" },
-    wait: { text: "대기", cls: "wait", item: "item--" },
-    good: { text: "확인", cls: "good", item: "item--good" },
-    done: { text: "완료", cls: "done", item: "item--done" }
+  var WHO = {
+    jh: { label: "종화", cls: "jh" },
+    su: { label: "수뚜", cls: "su" },
+    both: { label: "같이", cls: "both" }
   };
+  var WHO_NEXT = { jh: "su", su: "both", both: "jh" };
+  var FREQ = { daily: "매일", weekly: "주간", any: "수시" };
 
+  var SEED = [
+    { room: "living", title: "로봇청소기 · 청소기 돌리기", who: "jh", freq: "daily" },
+    { room: "living", title: "물걸레질", who: "su", freq: "weekly" },
+    { room: "living", title: "소파 · 장난감 정리", who: "both", freq: "daily" },
+    { room: "living", title: "창문 열어 환기", who: "su", freq: "daily" },
+
+    { room: "kitchen", title: "설거지 · 식세기 돌리기", who: "jh", freq: "daily" },
+    { room: "kitchen", title: "음식물쓰레기 비우기", who: "su", freq: "daily" },
+    { room: "kitchen", title: "정수기 주변 닦기", who: "both", freq: "weekly" },
+    { room: "kitchen", title: "장보기 목록 체크", who: "su", freq: "weekly" },
+
+    { room: "bath", title: "샤워기 · 세면대 필터 상태 확인", who: "jh", freq: "weekly" },
+    { room: "bath", title: "배수구 머리카락 정리", who: "jh", freq: "weekly" },
+    { room: "bath", title: "수건 교체 · 세탁", who: "su", freq: "weekly" },
+    { room: "bath", title: "곰팡이 · 물때 청소", who: "both", freq: "weekly" },
+
+    { room: "bedroom", title: "빨래 · 건조기 돌리고 개기", who: "su", freq: "daily" },
+    { room: "bedroom", title: "침구 털기", who: "both", freq: "weekly" },
+    { room: "bedroom", title: "아이 용품 · 기저귀/젖병 챙기기", who: "jh", freq: "daily" },
+
+    { room: "entry", title: "분리수거(플라스틱 · 종이 · 캔) 내놓기", who: "jh", freq: "weekly" },
+    { room: "entry", title: "택배 박스 정리", who: "both", freq: "any" },
+    { room: "entry", title: "신발장 · 현관 쓸기", who: "su", freq: "weekly" }
+  ];
+
+  var STORE = "pickle-house.chores.v2";
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------------- 요소 ---------------- */
-  var $ = function (sel) { return document.querySelector(sel); };
+  /* ---------------- 상태 ---------------- */
+  var state = { day: "", items: [] };
+  var filter = "all";
+  var sheetRoom = null;
+
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function cleanWho(v) { return WHO[v] ? v : "both"; }
+  function cleanFreq(v) { return FREQ[v] ? v : "any"; }
+  function cleanRoom(v) { return ROOMS[v] ? v : "living"; }
+
+  function load() {
+    var raw = null;
+    try { raw = window.localStorage.getItem(STORE); } catch (e) { raw = null; }
+
+    if (!raw) {
+      state.items = SEED.map(function (s) {
+        return { id: uid(), room: s.room, title: s.title, who: s.who, freq: s.freq, done: false };
+      });
+      state.day = todayKey();
+      save();
+      return;
+    }
+
+    try {
+      var parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.items)) throw new Error("bad");
+      state.day = typeof parsed.day === "string" ? parsed.day : todayKey();
+      state.items = parsed.items
+        .filter(function (i) { return i && typeof i.title === "string" && i.title.trim(); })
+        .map(function (i) {
+          return {
+            id: String(i.id || uid()),
+            room: cleanRoom(i.room),
+            title: String(i.title).slice(0, 60),
+            who: cleanWho(i.who),
+            freq: cleanFreq(i.freq),
+            done: !!i.done
+          };
+        });
+    } catch (e) {
+      state.items = [];
+      state.day = todayKey();
+    }
+  }
+
+  function save() {
+    try { window.localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* 저장이 막혀도 동작만 */ }
+  }
+
+  function resetIfNewDay() {
+    var today = todayKey();
+    if (state.day === today) return false;
+    state.day = today;
+    state.items.forEach(function (i) { i.done = false; });
+    save();
+    return true;
+  }
+
+  /* ---------------- DOM ---------------- */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
   var dateLine = $("#dateLine");
   var lampBtn = $("#lampBtn");
   var lampIcon = $("#lampIcon");
   var lampLabel = $("#lampLabel");
   var house = $("#house");
+  var sumPct = $("#sumPct");
+  var sumSub = $("#sumSub");
+  var sumBar = $("#sumBar");
+  var whoCounts = $("#whoCounts");
+  var allList = $("#allList");
+  var listCount = $("#listCount");
+  var addForm = $("#addForm");
+  var addInput = $("#addInput");
+  var addRoom = $("#addRoom");
+  var addWho = $("#addWho");
+  var addFreq = $("#addFreq");
   var sheet = $("#sheet");
   var sheetKicker = $("#sheetKicker");
   var sheetTitle = $("#sheetTitle");
   var sheetBody = $("#sheetBody");
   var sheetClose = $("#sheetClose");
+  var sheetList = null;
   var scrim = $("#scrim");
-  var spouseBtn = $(".spouse");
-  var spouseBubble = $("#spouseBubble");
+  var live = $("#live");
 
-  /* ---------------- 날짜 · 인사 ---------------- */
-  function greeting(d) {
-    var h = d.getHours();
-    if (h < 6) return "늦은 밤이네요";
-    if (h < 11) return "좋은 아침이에요";
-    if (h < 17) return "좋은 오후예요";
-    if (h < 21) return "좋은 저녁이에요";
-    return "늦은 밤이네요";
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
   }
 
-  function updateDate() {
-    var now = new Date();
-    var date = new Intl.DateTimeFormat("ko-KR", {
-      year: "numeric", month: "long", day: "numeric", weekday: "long"
-    }).format(now);
-    var time = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
-    dateLine.textContent = date + " · " + time;
+  function announce(msg) {
+    if (!live) return;
+    live.textContent = "";
+    window.setTimeout(function () { live.textContent = msg; }, 40);
   }
 
-  /* ---------------- 피클 캐릭터 ---------------- */
-  var pickle = document.createElement("div");
-  pickle.className = "pickle";
-  pickle.innerHTML =
-    '<span class="bubble" id="bubble" role="status" aria-live="polite"></span>' +
-    '<svg class="pickle-body" viewBox="0 0 100 100" focusable="false" aria-hidden="true">' +
-      '<g class="body-anim">' +
-        '<g fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round">' +
-          '<path d="M31 25v51M69 25v51M31 51h38M31 76h38"/>' +
-        "</g>" +
-        '<circle cx="43" cy="37" r="4.4" fill="#242424"/>' +
-        '<circle cx="57" cy="37" r="4.4" fill="#242424"/>' +
-        '<ellipse cx="36" cy="45" rx="4.8" ry="2.7" fill="#ffffff" opacity=".45"/>' +
-        '<ellipse cx="64" cy="45" rx="4.8" ry="2.7" fill="#ffffff" opacity=".45"/>' +
-      "</g>" +
-    "</svg>";
-  var bubble = pickle.querySelector("#bubble");
-
-  var bubbleTimer = null;
-
-  function setBubble(text, hold) {
-    if (!bubble) return;
-    bubble.textContent = text;
-    bubble.classList.remove("pop");
-    void bubble.offsetWidth;
-    bubble.classList.add("pop", "show");
-    window.clearTimeout(bubbleTimer);
-    bubbleTimer = window.setTimeout(function () {
-      bubble.classList.remove("show");
-    }, hold || 5200);
+  /* ---------------- 집계 ---------------- */
+  function roomItems(room) {
+    return state.items.filter(function (i) { return i.room === room; });
+  }
+  function roomDone(room) {
+    return roomItems(room).filter(function (i) { return i.done; }).length;
+  }
+  function totals() {
+    var total = state.items.length;
+    var done = state.items.filter(function (i) { return i.done; }).length;
+    return { total: total, done: done };
   }
 
-  function currentSlot() {
-    return house.querySelector('.pickle-slot[data-slot="living"]') || house.querySelector(".pickle-slot");
+  /* ---------------- 렌더 ---------------- */
+  function renderSummary() {
+    var t = totals();
+    var pct = t.total ? Math.round((t.done / t.total) * 100) : 0;
+    sumPct.textContent = pct;
+    sumSub.textContent = t.done + " / " + t.total + " 완료";
+    sumBar.style.width = pct + "%";
+
+    whoCounts.textContent = "";
+    ["jh", "su", "both"].forEach(function (key) {
+      var mine = state.items.filter(function (i) { return i.who === key; });
+      var done = mine.filter(function (i) { return i.done; }).length;
+      var li = el("li", "who-count who-count--" + WHO[key].cls);
+      li.appendChild(el("i", ""));
+      li.appendChild(el("span", null, WHO[key].label + " " + done + "/" + mine.length));
+      whoCounts.appendChild(li);
+    });
+
+    listCount.textContent = t.done + " / " + t.total;
   }
 
-  function placePickle(slot) {
-    if (!slot || pickle.parentElement === slot) return;
-    slot.appendChild(pickle);
+  function renderRooms() {
+    ROOM_ORDER.forEach(function (key) {
+      var total = roomItems(key).length;
+      var done = roomDone(key);
+      var card = house.querySelector('.room[data-room="' + key + '"]');
+      if (!card) return;
+      var badge = card.querySelector('[data-count="' + key + '"]');
+      var sub = card.querySelector('[data-sub="' + key + '"]');
+      var bar = card.querySelector('[data-bar="' + key + '"]');
+      if (badge) badge.textContent = total;
+      if (sub) sub.textContent = done + " / " + total + " 완료";
+      if (bar) bar.style.width = (total ? Math.round((done / total) * 100) : 0) + "%";
+      card.classList.toggle("is-done", total > 0 && done === total);
+      var label = card.querySelector(".room-btn");
+      if (label) {
+        label.setAttribute("aria-label",
+          ROOMS[key].name + " 집안일 " + total + "개 중 " + done + "개 완료. 눌러서 보기");
+      }
+    });
   }
 
-  function movePickle(key) {
-    var room = house.querySelector('.room[data-room="' + key + '"]');
-    if (!room) return;
-    var slot = room.querySelector(".pickle-slot");
-    if (!slot || pickle.parentElement === slot) return;
+  function rowFor(item) {
+    var li = el("li", "row" + (item.done ? " done" : ""));
+    li.dataset.id = item.id;
 
-    if (reduceMotion || !pickle.animate) {
-      placePickle(slot);
+    var tick = el("button", "tick");
+    tick.type = "button";
+    tick.setAttribute("role", "checkbox");
+    tick.setAttribute("aria-checked", item.done ? "true" : "false");
+    tick.setAttribute("aria-label", (item.done ? "완료 취소: " : "완료 표시: ") + item.title);
+    tick.dataset.act = "toggle";
+
+    var main = el("div", "row-main");
+    var title = el("p", "row-title", item.title);
+    var meta = el("div", "row-meta");
+
+    var who = el("button", "who who--" + WHO[item.who].cls, WHO[item.who].label);
+    who.type = "button";
+    who.dataset.act = "who";
+    who.title = "누르면 담당이 바뀌어요";
+    who.setAttribute("aria-label", "담당 " + WHO[item.who].label + ". 눌러서 바꾸기");
+
+    var freq = el("span", "freq", FREQ[item.freq]);
+
+    meta.appendChild(who);
+    meta.appendChild(freq);
+    main.appendChild(title);
+    main.appendChild(meta);
+
+    var del = el("button", "del", "✕");
+    del.type = "button";
+    del.dataset.act = "del";
+    del.setAttribute("aria-label", "삭제: " + item.title);
+
+    li.appendChild(tick);
+    li.appendChild(main);
+    li.appendChild(del);
+    return li;
+  }
+
+  function renderList() {
+    allList.textContent = "";
+
+    var items = state.items.filter(function (i) {
+      return filter === "all" || i.who === filter;
+    });
+
+    if (!items.length) {
+      allList.appendChild(el("p", "list-empty",
+        filter === "all" ? "아직 집안일이 없어요. 아래에서 한 줄 추가해 보세요." : "이 담당의 집안일이 없어요."));
       return;
     }
 
-    var first = pickle.getBoundingClientRect();
-    placePickle(slot);
-    var last = pickle.getBoundingClientRect();
-    var dx = first.left - last.left;
-    var dy = first.top - last.top;
+    ROOM_ORDER.forEach(function (key) {
+      var mine = items.filter(function (i) { return i.room === key; });
+      if (!mine.length) return;
 
-    pickle.animate(
-      [
-        { transform: "translate(" + dx + "px," + dy + "px)" },
-        { transform: "translate(" + dx * 0.45 + "px," + (dy * 0.45 - 26) + "px)", offset: 0.55 },
-        { transform: "translate(0, 0)" }
-      ],
-      { duration: 620, easing: "cubic-bezier(.3,.85,.3,1)" }
-    );
+      var head = el("div", "group-head");
+      head.appendChild(el("span", "g-icon", ROOMS[key].icon));
+      head.appendChild(el("span", null, ROOMS[key].name));
+      head.appendChild(el("span", "g-count",
+        mine.filter(function (i) { return i.done; }).length + "/" + mine.length));
+      allList.appendChild(head);
+
+      var ul = el("ul", null);
+      mine.forEach(function (item) { ul.appendChild(rowFor(item)); });
+      allList.appendChild(ul);
+    });
   }
+
+  function renderSheetList() {
+    if (!sheetList || !sheetRoom) return;
+    sheetList.textContent = "";
+    var mine = roomItems(sheetRoom);
+    if (!mine.length) {
+      sheetList.appendChild(el("p", "list-empty", "이 방에는 아직 집안일이 없어요. 아래에서 추가해 보세요."));
+      return;
+    }
+    mine.forEach(function (item) { sheetList.appendChild(rowFor(item)); });
+  }
+
+  function renderAll() {
+    renderSummary();
+    renderRooms();
+    renderList();
+    renderSheetList();
+  }
+
+  /* ---------------- 배우자/집안일 조작 ---------------- */
+  function findItem(id) {
+    for (var i = 0; i < state.items.length; i++) {
+      if (state.items[i].id === id) return state.items[i];
+    }
+    return null;
+  }
+
+  document.addEventListener("click", function (e) {
+    var actEl = e.target.closest ? e.target.closest("[data-act]") : null;
+    if (!actEl) return;
+    var rowEl = actEl.closest(".row");
+    if (!rowEl) return;
+    var item = findItem(rowEl.dataset.id);
+    if (!item) return;
+    e.preventDefault();
+
+    var act = actEl.dataset.act;
+    var id = item.id;
+
+    if (act === "toggle") {
+      item.done = !item.done;
+      announce((item.done ? "완료: " : "완료 취소: ") + item.title);
+    } else if (act === "who") {
+      item.who = WHO_NEXT[item.who];
+      announce(item.title + " 담당 " + WHO[item.who].label);
+    } else if (act === "del") {
+      var title = item.title;
+      state.items = state.items.filter(function (i) { return i.id !== id; });
+      announce("삭제: " + title);
+    }
+
+    save();
+    renderAll();
+
+    if (act !== "del") {
+      var again = document.querySelector('.row[data-id="' + id + '"] [data-act="' + act + '"]');
+      if (again) again.focus({ preventScroll: true });
+    } else {
+      var next = sheetRoom ? sheetList : allList;
+      if (next) next.setAttribute("tabindex", "-1");
+      if (next) next.focus({ preventScroll: true });
+    }
+  });
+
+  /* ---------------- 추가 ---------------- */
+  function addItem(room, who, freq, title) {
+    var t = String(title || "").trim();
+    if (!t) return false;
+    state.items.unshift({
+      id: uid(),
+      room: cleanRoom(room),
+      title: t.slice(0, 60),
+      who: cleanWho(who),
+      freq: cleanFreq(freq),
+      done: false
+    });
+    save();
+    renderAll();
+    announce("추가: " + t);
+    return true;
+  }
+
+  addForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (addItem(addRoom.value, addWho.value, addFreq.value, addInput.value)) {
+      addInput.value = "";
+      addInput.focus();
+    } else {
+      addInput.focus();
+    }
+  });
+
+  /* ---------------- 방 카드 ---------------- */
+  house.querySelectorAll(".room").forEach(function (room) {
+    var btn = room.querySelector(".room-btn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      openSheet(room.getAttribute("data-room"));
+    });
+  });
 
   /* ---------------- 상세 시트 ---------------- */
   var lastFocus = null;
 
-  function ddayLabel(dueISO) {
-    var now = new Date();
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var p = dueISO.split("-");
-    var target = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-    var diff = Math.round((target - today) / 86400000);
-    if (diff === 0) return { text: "오늘 마감", cls: "today", item: "item--today" };
-    if (diff > 0) return { text: "D-" + diff, cls: diff <= 3 ? "soon" : "open", item: diff <= 3 ? "item--soon" : "item--" };
-    return { text: "마감 지남", cls: "wait", item: "item--" };
-  }
+  function buildSheetForm(roomKey) {
+    var form = el("form", "add-form");
+    form.autocomplete = "off";
 
-  function buildSheet(key) {
-    var data = ROOMS[key];
-    if (!data) return;
+    var input = el("input", "add-input");
+    input.type = "text";
+    input.maxLength = 60;
+    input.placeholder = "이 방에 할 일 추가 (예: 거실 창틀 닦기)";
+    input.setAttribute("aria-label", ROOMS[roomKey].name + "에 새 집안일");
 
-    sheetKicker.textContent = data.tag;
-    sheetTitle.textContent = data.icon + " " + data.name;
-    sheetBody.textContent = "";
+    var row = el("div", "add-row");
+    var who = el("select", "add-select");
+    who.setAttribute("aria-label", "담당");
+    Object.keys(WHO).forEach(function (k) {
+      var o = el("option", null, WHO[k].label);
+      o.value = k;
+      who.appendChild(o);
+    });
+    var freq = el("select", "add-select");
+    freq.setAttribute("aria-label", "주기");
+    Object.keys(FREQ).forEach(function (k) {
+      var o = el("option", null, FREQ[k]);
+      o.value = k;
+      freq.appendChild(o);
+    });
+    var btn = el("button", "add-btn", "추가");
+    btn.type = "submit";
 
-    data.items.forEach(function (item) {
-      var chip;
-      if (item.due) {
-        chip = ddayLabel(item.due);
-      } else {
-        var s = STATE_LABEL[item.state] || STATE_LABEL.open;
-        chip = { text: s.text, cls: s.cls, item: s.item };
+    row.appendChild(who);
+    row.appendChild(freq);
+    row.appendChild(btn);
+    form.appendChild(input);
+    form.appendChild(row);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (addItem(roomKey, who.value, freq.value, input.value)) {
+        input.value = "";
+        input.focus();
       }
-
-      var li = document.createElement("div");
-      li.className = "item " + (chip.item || "");
-
-      var badge = document.createElement("span");
-      badge.className = "chip chip--" + chip.cls;
-      badge.textContent = chip.text;
-
-      var title = document.createElement("p");
-      title.className = "item-title";
-      title.textContent = item.title;
-
-      var meta = document.createElement("p");
-      meta.className = "item-meta";
-      meta.textContent = item.meta;
-
-      li.appendChild(badge);
-      li.appendChild(title);
-      li.appendChild(meta);
-      sheetBody.appendChild(li);
     });
 
-    if (data.note) {
-      var note = document.createElement("p");
-      note.className = "sheet-note";
-      note.textContent = data.note;
-      sheetBody.appendChild(note);
-    }
+    return form;
   }
 
-  function openSheet(key) {
+  function openSheet(roomKey) {
+    if (!ROOMS[roomKey]) return;
+    var room = ROOMS[roomKey];
+    sheetRoom = roomKey;
     lastFocus = document.activeElement;
-    buildSheet(key);
+
+    $$(".room.is-active").forEach(function (r) { r.classList.remove("is-active"); });
+    var card = house.querySelector('.room[data-room="' + roomKey + '"]');
+    if (card) card.classList.add("is-active");
+
+    sheetKicker.textContent = "오늘의 " + room.name;
+    sheetTitle.textContent = room.icon + " " + room.name;
+    sheetBody.textContent = "";
+
+    sheetList = el("ul", "sheet-list");
+    sheetBody.appendChild(sheetList);
+    sheetBody.appendChild(buildSheetForm(roomKey));
+
+    renderSheetList();
+
     sheet.hidden = false;
     scrim.hidden = false;
     document.body.style.overflow = "hidden";
@@ -259,6 +463,11 @@
       sheet.setAttribute("aria-hidden", "false");
       sheetClose.focus({ preventScroll: true });
     });
+
+    movePickle(pickles.jh, roomKey);
+    movePickle(pickles.su, roomKey);
+    say(pickles.jh, room.cheer.jh, 3400);
+    window.setTimeout(function () { say(pickles.su, room.cheer.su, 3400); }, 400);
   }
 
   function closeSheet() {
@@ -267,6 +476,7 @@
     scrim.classList.remove("show");
     sheet.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    sheetRoom = null;
 
     window.setTimeout(function () {
       if (!sheet.classList.contains("is-open")) {
@@ -278,76 +488,117 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
 
-  /* ---------------- 방 선택 ---------------- */
-  function selectRoom(key) {
-    var room = house.querySelector('.room[data-room="' + key + '"]');
-    if (!room) return;
-
-    house.querySelectorAll(".room.is-active").forEach(function (r) {
-      r.classList.remove("is-active");
-    });
-    room.classList.add("is-active");
-
-    movePickle(key);
-    setBubble(ROOMS[key].bubble);
-    openSheet(key);
-  }
-
-  house.querySelectorAll(".room").forEach(function (room) {
-    var btn = room.querySelector(".room-btn");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      selectRoom(room.getAttribute("data-room"));
-    });
-  });
-
   sheetClose.addEventListener("click", closeSheet);
   scrim.addEventListener("click", closeSheet);
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      closeSheet();
-      return;
-    }
+    if (e.key === "Escape") { closeSheet(); return; }
     if (e.key === "Tab" && sheet.classList.contains("is-open")) {
-      var focusables = sheet.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      if (!focusables.length) return;
-      var firstEl = focusables[0];
-      var lastEl = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === firstEl) {
-        e.preventDefault();
-        lastEl.focus();
-      } else if (!e.shiftKey && document.activeElement === lastEl) {
-        e.preventDefault();
-        firstEl.focus();
-      }
+      var f = sheet.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   });
 
-  /* ---------------- 배우자 피클 ---------------- */
-  if (spouseBtn && spouseBubble) {
-    var spouseLines = [
-      "오늘도 평화롭네요 🍵",
-      "종화 님, 물 한 잔 어떠세요?",
-      "거실 불은 제가 켜 둘게요 🌙",
-      "하뚜는 잘 자고 있을까요?"
-    ];
-    var spouseIdx = 0;
-    var spouseTimer = null;
-
-    spouseBtn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      spouseIdx = (spouseIdx + 1) % spouseLines.length;
-      spouseBubble.textContent = spouseLines[spouseIdx];
-      spouseBubble.classList.add("show");
-      window.clearTimeout(spouseTimer);
-      spouseTimer = window.setTimeout(function () {
-        spouseBubble.classList.remove("show");
-      }, 4200);
+  /* ---------------- 필터 ---------------- */
+  $$(".pill").forEach(function (pill) {
+    pill.addEventListener("click", function () {
+      filter = pill.getAttribute("data-filter") || "all";
+      $$(".pill").forEach(function (p) {
+        p.setAttribute("aria-pressed", p === pill ? "true" : "false");
+      });
+      renderList();
+      var n = state.items.filter(function (i) { return filter === "all" || i.who === filter; }).length;
+      announce((filter === "all" ? "전체" : WHO[filter].label) + " " + n + "개");
     });
+  });
+
+  /* ---------------- 피클 ---------------- */
+  function pickleSvg(who) {
+    var bow = who === "su"
+      ? '<path d="M50 7c-3-5-11-4-11 2 0 4.5 6.5 7.5 11 11.5 4.5-4 11-7 11-11.5 0-6-8-7-11-2z" fill="#E86A82" opacity=".95"/>'
+      : '<path d="M34 20c2-6 8-8 16-8s14 2 16 8" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round"/>';
+    return '<svg viewBox="0 0 100 100" focusable="false" aria-hidden="true">' +
+      '<g class="body-anim">' +
+        '<g fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round">' +
+          '<path d="M31 27v50M69 27v50M31 52h38M31 77h38"/>' +
+        "</g>" +
+        '<circle cx="43" cy="39" r="4.2" fill="#242424"/>' +
+        '<circle cx="57" cy="39" r="4.2" fill="#242424"/>' +
+        '<ellipse cx="36" cy="46" rx="4.4" ry="2.5" fill="#ffffff" opacity=".4"/>' +
+        '<ellipse cx="64" cy="46" rx="4.4" ry="2.5" fill="#ffffff" opacity=".4"/>' +
+        bow +
+      "</g></svg>";
   }
 
-  /* ---------------- 램프(낮/밤) ---------------- */
+  function makePickle(who) {
+    var p = el("div", "pickle pickle--" + who);
+    p.dataset.who = who;
+    p.setAttribute("aria-hidden", "true");
+    var b = el("span", "say say--" + who);
+    p.appendChild(b);
+    p.insertAdjacentHTML("beforeend", pickleSvg(who));
+    return p;
+  }
+
+  var pickles = { jh: makePickle("jh"), su: makePickle("su") };
+
+  function slotFor(room, who) {
+    return house.querySelector('.slot[data-slot="' + room + "-" + who + '"]');
+  }
+
+  function movePickle(p, room) {
+    if (!p) return;
+    var slot = slotFor(room, p.dataset.who);
+    if (!slot || p.parentElement === slot) return;
+
+    if (reduceMotion || !p.animate) { slot.appendChild(p); return; }
+
+    var first = p.getBoundingClientRect();
+    slot.appendChild(p);
+    var last = p.getBoundingClientRect();
+    var dx = first.left - last.left;
+    var dy = first.top - last.top;
+
+    p.animate(
+      [
+        { transform: "translate(" + dx + "px," + dy + "px)" },
+        { transform: "translate(" + (dx * 0.45) + "px," + (dy * 0.45 - 18) + "px)", offset: 0.55 },
+        { transform: "translate(0, 0)" }
+      ],
+      { duration: 560, easing: "cubic-bezier(.3,.85,.3,1)" }
+    );
+  }
+
+  function say(p, text, hold) {
+    if (!p) return;
+    var b = p.querySelector(".say");
+    if (!b) return;
+    b.textContent = text;
+    b.classList.add("show");
+    window.clearTimeout(b._timer);
+    b._timer = window.setTimeout(function () { b.classList.remove("show"); }, hold || 3200);
+  }
+
+  var CHEER_JH = ["오늘도 화이팅!", "저 청소기 돌리러 갈게요 🤖", "물 한 잔 마시고 할까요?", "거실 한번 돌아볼게요."];
+  var CHEER_SU = ["저는 빨래 보러 갈게요 🧺", "수건 바꿔 둘게요!", "같이 하면 금방이에요 💛", "설거지는 제가요 🍽️"];
+  var wanderRoom = { jh: "living", su: "living" };
+
+  function wander() {
+    if (sheet.classList.contains("is-open") || document.hidden) return;
+    if (reduceMotion) return;
+    var who = Math.random() < 0.5 ? "jh" : "su";
+    var others = ROOM_ORDER.filter(function (r) { return r !== wanderRoom[who]; });
+    var next = others[Math.floor(Math.random() * others.length)];
+    wanderRoom[who] = next;
+    movePickle(pickles[who], next);
+    var lines = who === "jh" ? CHEER_JH : CHEER_SU;
+    say(pickles[who], lines[Math.floor(Math.random() * lines.length)], 2600);
+  }
+
+  /* ---------------- 램프 ---------------- */
   var THEME_KEY = "pickle-house.theme";
 
   function applyTheme(theme) {
@@ -356,146 +607,49 @@
     lampBtn.setAttribute("aria-pressed", night ? "true" : "false");
     lampIcon.textContent = night ? "☀️" : "🌙";
     lampLabel.textContent = night ? "낮 켜기" : "밤 켜기";
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", night ? "#191614" : "#FBF5E9");
   }
 
   (function initTheme() {
     var saved = null;
-    try { saved = window.localStorage.getItem(THEME_KEY); } catch (err) { saved = null; }
+    try { saved = window.localStorage.getItem(THEME_KEY); } catch (e) { saved = null; }
     applyTheme(saved === "night" ? "night" : "day");
   })();
 
   lampBtn.addEventListener("click", function () {
     var next = document.documentElement.getAttribute("data-theme") === "night" ? "day" : "night";
     applyTheme(next);
-    try { window.localStorage.setItem(THEME_KEY, next); } catch (err) { /* 저장이 막혀도 동작만 */ }
+    try { window.localStorage.setItem(THEME_KEY, next); } catch (e) { /* 무시 */ }
   });
 
-  /* ---------------- 할 일 메모장 ---------------- */
-  var TODO_KEY = "pickle-house.todos.v1";
-  var memoForm = $("#memoForm");
-  var memoInput = $("#memoInput");
-  var memoList = $("#memoList");
-  var memoEmpty = $("#memoEmpty");
-  var memoCount = $("#memoCount");
-  var memoClear = $("#memoClear");
-  var todos = loadTodos();
-
-  function loadTodos() {
-    try {
-      var raw = window.localStorage.getItem(TODO_KEY);
-      if (!raw) return [];
-      var parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
-      return parsed
-        .filter(function (t) { return t && typeof t.text === "string" && t.text.trim(); })
-        .map(function (t) {
-          return {
-            id: String(t.id || Math.random().toString(36).slice(2)),
-            text: String(t.text).slice(0, 120),
-            done: !!t.done
-          };
-        });
-    } catch (err) {
-      return [];
-    }
+  /* ---------------- 날짜 ---------------- */
+  function updateDate() {
+    var now = new Date();
+    var date = new Intl.DateTimeFormat("ko-KR", {
+      month: "long", day: "numeric", weekday: "long"
+    }).format(now);
+    var time = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+    dateLine.textContent = date + " · " + time;
   }
-
-  function saveTodos() {
-    try { window.localStorage.setItem(TODO_KEY, JSON.stringify(todos)); } catch (err) { /* 무시 */ }
-  }
-
-  function renderTodos() {
-    memoList.textContent = "";
-
-    todos.forEach(function (todo) {
-      var li = document.createElement("li");
-      li.className = "memo-item" + (todo.done ? " done" : "");
-      li.dataset.id = todo.id;
-
-      var tick = document.createElement("button");
-      tick.type = "button";
-      tick.className = "tick";
-      tick.setAttribute("role", "checkbox");
-      tick.setAttribute("aria-checked", todo.done ? "true" : "false");
-      tick.setAttribute("aria-label", (todo.done ? "완료 취소: " : "완료 표시: ") + todo.text);
-
-      var text = document.createElement("span");
-      text.className = "memo-text";
-      text.textContent = todo.text;
-
-      var del = document.createElement("button");
-      del.type = "button";
-      del.className = "memo-del";
-      del.setAttribute("aria-label", "삭제: " + todo.text);
-      del.textContent = "✕";
-
-      li.appendChild(tick);
-      li.appendChild(text);
-      li.appendChild(del);
-      memoList.appendChild(li);
-    });
-
-    var left = todos.filter(function (t) { return !t.done; }).length;
-    memoCount.textContent = left + "개 남음";
-    memoEmpty.hidden = todos.length > 0;
-  }
-
-  memoForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var value = memoInput.value.trim();
-    if (!value) {
-      memoInput.focus();
-      return;
-    }
-    todos.unshift({
-      id: Math.random().toString(36).slice(2),
-      text: value.slice(0, 120),
-      done: false
-    });
-    memoInput.value = "";
-    saveTodos();
-    renderTodos();
-    memoInput.focus();
-  });
-
-  memoList.addEventListener("click", function (e) {
-    var tick = e.target.closest(".tick");
-    var del = e.target.closest(".memo-del");
-    var item = e.target.closest(".memo-item");
-    if (!item) return;
-    var id = item.dataset.id;
-
-    if (tick) {
-      todos = todos.map(function (t) {
-        return t.id === id ? { id: t.id, text: t.text, done: !t.done } : t;
-      });
-      saveTodos();
-      renderTodos();
-      return;
-    }
-
-    if (del) {
-      todos = todos.filter(function (t) { return t.id !== id; });
-      saveTodos();
-      renderTodos();
-    }
-  });
-
-  memoClear.addEventListener("click", function () {
-    var remaining = todos.filter(function (t) { return !t.done; });
-    if (remaining.length === todos.length) return;
-    todos = remaining;
-    saveTodos();
-    renderTodos();
-  });
 
   /* ---------------- 시작 ---------------- */
+  load();
+  if (resetIfNewDay()) announce("날이 바뀌어 오늘 체크리스트를 새로 시작했어요.");
+
+  renderAll();
   updateDate();
   window.setInterval(updateDate, 30000);
 
-  renderTodos();
-  placePickle(currentSlot());
-  setBubble(greeting(new Date()) + ", 종화 님. 방을 눌러 보세요.", 6000);
+  movePickle(pickles.jh, "living");
+  movePickle(pickles.su, "living");
+  window.setTimeout(function () { say(pickles.jh, "오늘도 화이팅, 종화 님!", 3600); }, 600);
+  window.setTimeout(function () { say(pickles.su, "같이 하면 금방이에요 💛", 3600); }, 1300);
+
+  window.setInterval(function () {
+    if (resetIfNewDay()) { renderAll(); announce("날이 바뀌어 체크리스트를 새로 시작했어요."); }
+  }, 60000);
+
+  window.setInterval(wander, 13000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && resetIfNewDay()) { renderAll(); }
+  });
 })();
