@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>아늑한 일반 집 · 피클 비서실</title>
+<meta name="description" content="박종화 님의 집을 닮은 아늑한 비서실. 방마다 지금 챙길 일이 정리되어 있습니다.">
+<meta name="theme-color" content="#FBF5E9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191614" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23FBF5E9'/%3E%3Cg fill='none' stroke='%235B8DEF' stroke-width='11' stroke-linecap='round'%3E%3Cpath d='M32 24v52M68 24v52M32 50h36M32 76h36'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#house">집 안으로 바로 가기</a>
+
+<div class="backdrop" aria-hidden="true">
+  <span class="sky-glow"></span>
+  <span class="orb"></span>
+  <span class="stars"></span>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 100 100" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round">
+          <path d="M32 26v50M68 26v50M32 51h36M32 76h36"/>
+        </g>
+        <circle cx="43" cy="38" r="4.2" fill="#2B2B2B"/>
+        <circle cx="57" cy="38" r="4.2" fill="#2B2B2B"/>
+      </svg>
+    </span>
+    <div>
+      <p class="brand-kicker">PICKLE HOUSE</p>
+      <h1 class="brand-title">아늑한 일반 집, 피클 비서실</h1>
+    </div>
+  </div>
+
+  <div class="top-side">
+    <p class="date-line" id="dateLine">오늘</p>
+    <button class="lamp" id="lampBtn" type="button" aria-pressed="false" aria-label="집 안 불 켜고 끄기">
+      <span class="lamp-icon" id="lampIcon" aria-hidden="true">🌙</span>
+      <span class="lamp-label" id="lampLabel">밤 켜기</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="house" id="house" aria-labelledby="houseTitle">
+    <div class="roof" aria-hidden="true">
+      <span class="chimney"></span>
+      <span class="smoke"></span>
+    </div>
+
+    <div class="floors" id="floors">
+
+      <article class="room room--study" data-room="study">
+        <button class="room-btn" type="button" aria-haspopup="dialog" aria-label="서재 — 이직과 이력서, 4건">
+          <span class="room-head">
+            <span class="room-icon" aria-hidden="true">📚</span>
+            <span class="room-name">서재</span>
+            <span class="room-badge">4</span>
+          </span>
+          <span class="room-tag">이직 · 이력서</span>
+          <span class="room-line">마감 셋, 인재풀 하나</span>
+        </button>
+        <span class="pickle-slot" data-slot="study"></span>
+      </article>
+
+      <article class="room room--living" data-room="living">
+        <button class="room-btn" type="button" aria-haspopup="dialog" aria-label="거실 — 생활과 환급, 4건">
+          <span class="room-head">
+            <span class="room-icon" aria-hidden="true">🛋️</span>
+            <span class="room-name">거실</span>
+            <span class="room-badge">4</span>
+          </span>
+          <span class="room-tag">생활 · 환급</span>
+          <span class="room-line">환급 81.6만 · 포인트 11,537원</span>
+        </button>
+        <span class="rug" aria-hidden="true"></span>
+        <span class="pickle-slot" data-slot="living"></span>
+        <button class="spouse" type="button" aria-label="수뚜 님 피클에게 인사하기">
+          <span class="spouse-tag">수뚜 님 피클</span>
+          <span class="spouse-bubble" id="spouseBubble" aria-hidden="true">오늘도 평화롭네요 🍵</span>
+          <svg class="spouse-body" viewBox="0 0 100 100" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="11" stroke-linecap="round">
+              <path d="M34 30v46M66 30v46M34 52h32M34 74h32"/>
+            </g>
+            <circle cx="44" cy="41" r="4" fill="#2B2B2B"/>
+            <circle cx="57" cy="41" r="4" fill="#2B2B2B"/>
+            <ellipse cx="38" cy="47" rx="5" ry="3" fill="#FFFFFF" opacity=".45"/>
+            <ellipse cx="62" cy="47" rx="5" ry="3" fill="#FFFFFF" opacity=".45"/>
+          </svg>
+        </button>
+      </article>
+
+      <article class="room room--work" data-room="work">
+        <button class="room-btn" type="button" aria-haspopup="dialog" aria-label="작업실 — 업무와 CS, 3건">
+          <span class="room-head">
+            <span class="room-icon" aria-hidden="true">💻</span>
+            <span class="room-name">작업실</span>
+            <span class="room-badge">3</span>
+          </span>
+          <span class="room-tag">업무 · CS</span>
+          <span class="room-line">CS 1건 · 배송 1건</span>
+        </button>
+        <span class="pickle-slot" data-slot="work"></span>
+      </article>
+
+      <article class="room room--entry" data-room="entry">
+        <button class="room-btn" type="button" aria-haspopup="dialog" aria-label="현관과 차고 — 집과 차량, 2건">
+          <span class="room-head">
+            <span class="room-icon" aria-hidden="true">🚗</span>
+            <span class="room-name">현관 · 차고</span>
+            <span class="room-badge">2</span>
+          </span>
+          <span class="room-tag">집 · 차량</span>
+          <span class="room-line">견적 조사 · 리콜 확인</span>
+        </button>
+        <span class="pickle-slot" data-slot="entry"></span>
+      </article>
+
+      <article class="room room--utility" data-room="utility">
+        <button class="room-btn" type="button" aria-haspopup="dialog" aria-label="다용도실 — 잔일 보관, 3건">
+          <span class="room-head">
+            <span class="room-icon" aria-hidden="true">🧺</span>
+            <span class="room-name">다용도실</span>
+            <span class="room-badge">3</span>
+          </span>
+          <span class="room-tag">잔일 보관</span>
+          <span class="room-line">조사 · 구매 기록</span>
+        </button>
+        <span class="pickle-slot" data-slot="utility"></span>
+      </article>
+
+    </div>
+
+    <p class="house-hint">
+      <span aria-hidden="true">👆</span> 방을 눌러 보세요. 피클이 따라가서 알려 줍니다.
+    </p>
+  </section>
+
+  <section class="memo" aria-labelledby="memoTitle">
+    <header class="memo-head">
+      <div>
+        <p class="memo-kicker">SCRATCH PAD</p>
+        <h2 class="memo-title" id="memoTitle">🧺 할 일 메모장</h2>
+      </div>
+      <p class="memo-note">이 브라우저에만 저장돼요</p>
+    </header>
+
+    <form class="memo-form" id="memoForm" autocomplete="off">
+      <label class="sr-only" for="memoInput">할 일</label>
+      <input class="memo-input" id="memoInput" type="text" maxlength="120" placeholder="예) 진한공업 지원서 마감 챙기기">
+      <button class="memo-add" type="submit">추가</button>
+    </form>
+
+    <ul class="memo-list" id="memoList"></ul>
+    <p class="memo-empty" id="memoEmpty">아직 적어 둔 일이 없어요. 생각날 때 한 줄씩.</p>
+
+    <footer class="memo-foot">
+      <span id="memoCount">0개 남음</span>
+      <button class="memo-clear" id="memoClear" type="button">완료한 일 지우기</button>
+    </footer>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>박종화 님의 집 · 피클 비서실</p>
+  <p class="foot-sub">집 안의 내용은 요약만 담았어요. 주소·연락처 같은 개인정보는 두지 않습니다.</p>
+</footer>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <div class="sheet-grip" aria-hidden="true"></div>
+  <header class="sheet-head">
+    <div>
+      <p class="sheet-kicker" id="sheetKicker">방</p>
+      <h2 class="sheet-title" id="sheetTitle">방 이름</h2>
+    </div>
+    <button class="sheet-close" id="sheetClose" type="button" aria-label="상세 닫기">✕</button>
+  </header>
+  <div class="sheet-body" id="sheetBody"></div>
+</aside>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
