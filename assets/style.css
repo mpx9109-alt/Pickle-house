@@ -594,13 +594,12 @@ main { padding-bottom: 36px; }
     grid-template-areas:
       "living living"
       "kitchen bath"
-      "bedroom bedroom"
-      "entry entry";
+      "bedroom entry";
     gap: 7px; padding: 7px; border-radius: 22px;
   }
   .room { min-height: 140px; border-radius: 15px; }
   .room-btn { padding: 11px 12px 12px; }
-  .room-name { font-size: .88rem; }
+  .room-name { font-size: .82rem; line-height: 1.25; }
   .room-sub { font-size: .66rem; }
   .room-bar { width: 74%; }
   .pickle { width: 34px; height: 34px; margin-left: -17px; }
@@ -610,8 +609,8 @@ main { padding-bottom: 36px; }
   .orb { width: 76px; height: 76px; left: auto; margin-left: 0; right: -16px; top: 96px; opacity: .26; }
   [data-theme="night"] .orb { width: 72px; height: 72px; top: 60px; right: 8px; }
   .sky-glow { opacity: .7; }
-  .summary { gap: 12px; padding: 14px 16px; }
-  .summary-figure { font-size: 1.7rem; }
+  .summary { gap: 10px; padding: 13px 15px; }
+  .summary-figure { font-size: 1.6rem; }
   .summary-mid { flex: 1 1 100%; order: 3; }
   .filters { margin-left: 0; width: 100%; order: 4; }
   .pill { flex: 1 1 0; text-align: center; padding: 8px 6px; }
