@@ -571,7 +571,14 @@ main { padding-bottom: 36px; }
   font-size: .9rem; display: grid; place-items: center;
 }
 .sheet-close:hover { background: var(--paper); }
-.sheet-body { padding: 6px 20px 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.sheet-body {
+  padding: 6px 20px 12px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  flex: 1 1 auto; min-height: 0;
+}
+.sheet .add-form {
+  margin: 0; padding: 10px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line-soft); background: var(--paper);
+}
 .sheet .row { padding: 10px 2px; }
 .sheet .add-form { margin-top: 14px; }
 

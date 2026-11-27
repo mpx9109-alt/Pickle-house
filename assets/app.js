@@ -145,6 +145,7 @@
   var sheetBody = $("#sheetBody");
   var sheetClose = $("#sheetClose");
   var sheetList = null;
+  var sheetForm = null;
   var scrim = $("#scrim");
   var live = $("#live");
   var cheer = $("#cheer");
@@ -464,7 +465,9 @@
 
     sheetList = el("ul", "sheet-list");
     sheetBody.appendChild(sheetList);
-    sheetBody.appendChild(buildSheetForm(roomKey));
+    if (sheetForm && sheetForm.parentNode) sheetForm.remove();
+    sheetForm = buildSheetForm(roomKey);
+    sheet.appendChild(sheetForm);
 
     renderSheetList();
 
