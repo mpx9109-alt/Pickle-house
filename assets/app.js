@@ -147,6 +147,9 @@
   var sheetList = null;
   var scrim = $("#scrim");
   var live = $("#live");
+  var cheer = $("#cheer");
+  var cheerDot = $("#cheerDot");
+  var cheerText = $("#cheerText");
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -476,8 +479,8 @@
 
     movePickle(pickles.jh, roomKey);
     movePickle(pickles.su, roomKey);
-    say(pickles.jh, room.cheer.jh, 3400);
-    window.setTimeout(function () { say(pickles.su, room.cheer.su, 3400); }, 400);
+    say("jh", room.cheer.jh, 3000);
+    window.setTimeout(function () { say("su", room.cheer.su, 3000); }, 1900);
   }
 
   function closeSheet() {
@@ -547,8 +550,6 @@
     var p = el("div", "pickle pickle--" + who);
     p.dataset.who = who;
     p.setAttribute("aria-hidden", "true");
-    var b = el("span", "say say--" + who);
-    p.appendChild(b);
     p.insertAdjacentHTML("beforeend", pickleSvg(who));
     return p;
   }
@@ -582,14 +583,15 @@
     );
   }
 
-  function say(p, text, hold) {
-    if (!p) return;
-    var b = p.querySelector(".say");
-    if (!b) return;
-    b.textContent = text;
-    b.classList.add("show");
-    window.clearTimeout(b._timer);
-    b._timer = window.setTimeout(function () { b.classList.remove("show"); }, hold || 3200);
+  var cheerTimer = null;
+
+  function say(who, text, hold) {
+    if (!cheer || !cheerText) return;
+    cheerText.textContent = (who === "su" ? "수뚜" : "종화") + " · " + text;
+    if (cheerDot) cheerDot.className = "cheer-dot " + (who === "su" ? "su" : "jh");
+    cheer.classList.add("is-on");
+    window.clearTimeout(cheerTimer);
+    cheerTimer = window.setTimeout(function () { cheer.classList.remove("is-on"); }, hold || 3200);
   }
 
   var CHEER_JH = ["오늘도 화이팅!", "저 청소기 돌리러 갈게요 🤖", "물 한 잔 마시고 할까요?", "거실 한번 돌아볼게요."];
@@ -605,7 +607,7 @@
     wanderRoom[who] = next;
     movePickle(pickles[who], next);
     var lines = who === "jh" ? CHEER_JH : CHEER_SU;
-    say(pickles[who], lines[Math.floor(Math.random() * lines.length)], 2600);
+    say(who, lines[Math.floor(Math.random() * lines.length)], 2800);
   }
 
   /* ---------------- 램프 ---------------- */
@@ -651,8 +653,8 @@
 
   movePickle(pickles.jh, "living");
   movePickle(pickles.su, "living");
-  window.setTimeout(function () { say(pickles.jh, "오늘도 화이팅, 종화 님!", 3600); }, 600);
-  window.setTimeout(function () { say(pickles.su, "같이 하면 금방이에요 💛", 3600); }, 1300);
+  window.setTimeout(function () { say("jh", "오늘도 화이팅, 종화 님!", 3200); }, 700);
+  window.setTimeout(function () { say("su", "같이 하면 금방이에요 💛", 3200); }, 4200);
 
   window.setInterval(function () {
     if (resetIfNewDay()) { renderAll(); announce("날이 바뀌어 체크리스트를 새로 시작했어요."); }
