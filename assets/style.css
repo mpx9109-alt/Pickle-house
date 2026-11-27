@@ -590,7 +590,7 @@ main { padding-bottom: 36px; }
   .roof { height: 74px; }
   .roof::before { inset: 18px 0 0 0; }
   .floors {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.14fr) minmax(0, 1fr);
     grid-template-areas:
       "living living"
       "kitchen bath"
